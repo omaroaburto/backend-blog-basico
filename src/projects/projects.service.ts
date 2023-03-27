@@ -4,13 +4,14 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Project } from './entities/project.entity';
+import { ProjectImage } from './entities/project-image.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { Project } from './entities/project.entity';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectImage } from './entities/project-image.entity';
+import { UploadProjectDto } from './dto/upload-project.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -105,19 +106,39 @@ export class ProjectsService {
     };
   }
 
-  async removeImages(id: string) {
-    const project = await this.projectRepository.findOne({
-      where: { id },
-    });
-    const urls = project.images.map(({ url }) => url);
-    this.cloudinary.deleteMoreThanOne(urls);
-    await this.projectImageRepository
+  async removeImages(id: string, uploadProjectDto: UploadProjectDto) {
+    let urls:string[];
+    if (uploadProjectDto.images && uploadProjectDto.images.length > 0) {
+      const projects = await this.projectImageRepository.find({
+        where:{
+          id: In([...uploadProjectDto.images]),
+          project:{ id}
+        }
+      })
+      const urls = projects.map(project => project.url);
+      const ids =  projects.map(project => project.id);
+      this.cloudinary.deleteMoreThanOne(urls);
+      await this.projectImageRepository
       .createQueryBuilder()
       .delete()
       .from(ProjectImage)
-      .where('projectId=:id',{id}) 
+      .where('id IN (:...ids)',{ids})
       .execute();
-    return await this.findOne(id);
+      return await this.findOne(id);
+    } else {
+      const project = await this.projectRepository.findOne({
+        where: { id },
+      });
+      urls = project.images.map(({ url }) => url);
+      this.cloudinary.deleteMoreThanOne(urls);
+      await this.projectImageRepository
+        .createQueryBuilder()
+        .delete()
+        .from(ProjectImage)
+        .where('projectId=:id',{id})
+        .execute();
+      return await this.findOne(id);
+    }
   }
 
   //*ERROR

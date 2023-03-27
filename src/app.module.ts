@@ -5,7 +5,8 @@ import { ProjectsModule } from './projects/projects.module';
 import { PartnersModule } from './partners/partners.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module'; 
+import { SendgridModule } from './sendgrid/sendgrid.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     ProjectsModule,
     PartnersModule,
     CloudinaryModule,
+    SendgridModule, 
   ],
   controllers: [],
   providers: [],

@@ -25,7 +25,7 @@ export class CloudinaryService {
     const [public_id] = name.split('.');
     return public_id;
   }
-  //TODO: implementar
+  
   deleteMoreThanOne(urlImages: string[]): void {
     const public_ids = urlImages.map((url) => {
       return this.publicId(url);

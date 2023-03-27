@@ -10,10 +10,11 @@ import {
   UseInterceptors,
   UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UploadProjectDto } from './dto/upload-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('projects')
 export class ProjectsController {
@@ -57,7 +58,10 @@ export class ProjectsController {
   }
 
   @Delete('upload/:id')
-  removeImages(@Param('id', ParseUUIDPipe) id: string) {
-    return this.projectsService.removeImages(id);
+  removeImages(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() uploadProjectDto: UploadProjectDto,
+  ) {
+    return this.projectsService.removeImages(id, uploadProjectDto);
   }
 }
